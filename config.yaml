@@ -12,4 +12,3 @@ servers:
     key_filename: "/home/syncuser/.ssh/id_ed25519"
     remote_path: "/opt/spfc/etc/mo"
     auxiliary_remote_path: "/opt/spfc/etc/mo.enabled"
-

@@ -1,6 +1,5 @@
-import subprocess
 import logging
-import time
+import subprocess
 
 logger = logging.getLogger("status")
 
@@ -42,36 +41,3 @@ def check_service_status(
     except (subprocess.CalledProcessError, FileNotFoundError, OSError) as e:
         logger.error("service=%s check_failed=%s", process_name, e)
         return False
-
-def wait_for_service_healthy(
-    process_name: str,
-    min_uptime: float,
-    retries: int = 5,
-    delay: float = 10.0
-) -> bool:
-
-    logger.info(
-        "healthcheck_start service=%s retries=%d delay=%.1f uptime_required=%.2f",
-        process_name, retries, delay, min_uptime
-    )
-
-    for attempt in range(1, retries + 1):
-        if check_service_status(process_name, min_uptime):
-            logger.info(
-                "healthcheck_ok service=%s attempt=%d",
-                process_name, attempt, retries
-            )
-            return True
-
-        if attempt < retries:
-            logger.warning(
-                "healthcheck_retry service=%s attempt=%d/%d delay=%.1f",
-                process_name, attempt, retries, delay
-            )
-            time.sleep(delay)
-
-    logger.error(
-        "healthcheck_failed service=%s attempts=%d",
-        process_name, retries
-    )
-    return False
