@@ -224,9 +224,6 @@ class ConfigChangeHandler(FileSystemEventHandler):
         if not path.startswith(self.watch_dir + os.sep):
             return
 
-        if self._is_ignored(path):
-            return
-
         if path.endswith(".yaml.save"):
             yaml_path = path[:-5]
         elif path.endswith(".yaml"):
