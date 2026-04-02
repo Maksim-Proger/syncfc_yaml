@@ -13,7 +13,8 @@ def main():
         watch_dir=config.watch_dir,
         servers=config.servers,
         debounce_seconds=config.debounce_seconds,
-        status_check=config.status_check
+        status_check=config.status_check,
+        ignore_files=config.ignore_files
     )
 
 if __name__ == "__main__":

@@ -4,6 +4,10 @@ status_check:
   process_name: "analyzer"
   min_uptime_seconds: 10
 
+ignore_files:
+  - "/opt/spfc/etc/mo/innova/Innova-30589-unprotected.yaml"
+  - "/opt/spfc/etc/mo/avantel/avantel-31602.yaml"
+
 servers:
   - host: "192.168.100.123"
     ssh_port: 22

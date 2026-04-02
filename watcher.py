@@ -96,12 +96,14 @@ class ConfigChangeHandler(FileSystemEventHandler):
                  servers,
                  debounce_seconds: float,
                  watch_dir: str,
-                 status_check):
+                 status_check,
+                 ignore_files: list):
         super().__init__()
         self.servers = servers
         self.debounce_seconds = debounce_seconds
         self.watch_dir = os.path.abspath(watch_dir)
         self.status_check = status_check
+        self.ignore_files = set(os.path.abspath(p) for p in ignore_files)
         self.last_sync_time = {}
 
     def _debounce_check(self, path):
@@ -113,6 +115,18 @@ class ConfigChangeHandler(FileSystemEventHandler):
             )
             return True
         self.last_sync_time[path] = now
+        return False
+
+    def _is_ignored(self, yaml_path: str) -> bool:
+        canon = os.path.abspath(yaml_path)
+        if canon.endswith(".save"):
+            canon = canon[:-5]
+        if canon in self.ignore_files:
+            logger.info(
+                "action=ignored path=%s reason=in_ignore_list",
+                yaml_path
+            )
+            return True
         return False
 
     def _handle_event_path(self, src: str, event_type: str):
@@ -134,6 +148,9 @@ class ConfigChangeHandler(FileSystemEventHandler):
                 "action=skip path=%s reason=outside_watch_dir",
                 path
             )
+            return
+
+        if self._is_ignored(path):
             return
 
         if os.path.isdir(path):
@@ -207,6 +224,9 @@ class ConfigChangeHandler(FileSystemEventHandler):
         if not path.startswith(self.watch_dir + os.sep):
             return
 
+        if self._is_ignored(path):
+            return
+
         if path.endswith(".yaml.save"):
             yaml_path = path[:-5]
         elif path.endswith(".yaml"):
@@ -262,18 +282,26 @@ def start_watcher(
         watch_dir: str,
         servers,
         debounce_seconds: float,
-        status_check
+        status_check,
+        ignore_files: list = None
 ):
     logger.info(
         "action=start_watcher path=%s",
         watch_dir
     )
 
+    if ignore_files:
+        logger.info(
+            "action=ignore_list count=%d files=%s",
+            len(ignore_files), ignore_files
+        )
+
     event_handler = ConfigChangeHandler(
         servers,
         debounce_seconds,
         watch_dir,
-        status_check
+        status_check,
+        ignore_files=ignore_files or []
     )
 
     observer = Observer()

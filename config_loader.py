@@ -29,8 +29,21 @@ class StatusCheckConfig(BaseModel):
 class AppConfig(BaseModel):
     watch_dir: str
     debounce_seconds: float = Field(ge=0.1, le=30)
+    ignore_files: List[str] = Field(default_factory=list)
     servers: List[ServerConfig]
     status_check: StatusCheckConfig
+
+    @field_validator("ignore_files", mode="before")
+    def normalize_ignore_files(cls, paths):
+        if not paths:
+            return []
+        normalized = set()
+        for p in paths:
+            p = os.path.abspath(p)
+            if p.endswith(".save"):
+                p = p[:-5]
+            normalized.add(p)
+        return sorted(normalized)
 
     @field_validator("watch_dir")
     def validate_local_directories(cls, path: str):
